@@ -28,13 +28,13 @@ a detailed README file is added to it that will detail the data and outline how 
 
 1. Install Python on your operating system
    - You could e.g. use `Anaconda` for Windows
-2. (Optional) Install a Python IDE, e.g. Pycharm.  
+2. (Optional) Install a Python IDE, e.g. Pycharm.
 3. Setup a new clean Python virtual environment
    - `python -m venv venv`
    - activate the virtual environment and work in it for all following steps.
-4. Install the requirements.txt file into your requirements 
+4. Install the requirements.txt file into your requirements
    - `pip install -r requirements.txt`
-   
+
 The version numbers of the requirements are all fixed to increase the likelihood that the code
 can be executed and that the results are the same compared to the ones reported in the paper.
 Due to operating system-specific differences in underlying C-libraries or due to different Python wheels
@@ -47,6 +47,17 @@ Open data_path.py and edit line 2 to point to the folder that you noted down ear
 downloaded data. By default, the code assumes that the data folder is in a folder called "data" next to the
 code-containing folder.
 
-## Step 4: Re-compute all results
+## Step 4: (Optional) Re-train the U-Nets
 
-Run `evaluate_test_data.py`.
+To retrain the U-Nets from scratch, run the `train_network_on_experiment.py` file and the 
+`train_network_on_simulation.py` file. It should be noted, however, that this step takes in the order of 
+20 hours for all folds. The weights of the already-trained networks for each fold are therefore provided
+and this step can be skipped.
+
+When attempting to compare our results to that of different model architectures, this step should be the only
+step that has to be altered.
+
+## Step 5: Re-compute all results
+
+Run `evaluate_test_data.py`. This will compute all results for both U-Nets (trained on experimental
+and simulated data)
