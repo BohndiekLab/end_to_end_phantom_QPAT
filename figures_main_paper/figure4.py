@@ -1,19 +1,24 @@
-from scipy.ndimage.morphology import distance_transform_edt
+from scipy.ndimage import distance_transform_edt
 from utils.visualise import subfig_regression_line
 from matplotlib.ticker import FormatStrFormatter
 from scipy.stats import linregress
 import matplotlib.pyplot as plt
+from data_path import DATA_PATH
 import numpy as np
 import matplotlib
 import os
 
-BASE_PATH = r"..\experimental/"
+BASE_PATH = rf"{DATA_PATH}/model_weights_experiment/"
+
 COLOURS = [
     "#228833ff",  # GREEN
     "#ee6677ff",  # RED
     "#4477aaff",  # BLUE
     "#ccbb44ff"   # YELLOW
 ]
+
+if not os.path.exists("../figures/res_images/"):
+    os.makedirs("../figures/res_images/")
 
 # can be calculated manually from utils.regression
 slope = 1484.953830163365
@@ -49,7 +54,7 @@ inc_signals = np.asarray(inc_signals)
 inc_absorptions = np.asarray(inc_absorptions)
 
 SPACING = 0.10666667
-DATA_PATH = r"C:\final_data_simulation\training/"
+DATA_PATH = rf"{DATA_PATH}\training/"
 
 wavelengths = np.linspace(700, 900, 21).astype(int)
 phantoms = np.linspace(1, 25, 25).astype(int)

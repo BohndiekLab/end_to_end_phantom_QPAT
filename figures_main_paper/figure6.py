@@ -5,6 +5,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib_scalebar.scalebar import ScaleBar
 from scipy.stats import gaussian_kde
 import matplotlib.pyplot as plt
+from data_path import DATA_PATH
 import numpy as np
 import matplotlib
 from scipy.stats import mannwhitneyu
@@ -12,8 +13,9 @@ import string
 import nrrd
 import os
 
-PATH_EXP = r"..\experimental/"
-PATH_SIM = r"..\simulation/"
+PATH_EXP = rf"{DATA_PATH}/model_weights_experiment/"
+PATH_SIM = rf"{DATA_PATH}/model_weights_simulation/"
+SCAN_INDEX_TO_SHOW = 0
 
 # CALIBRATION_SLOPE, CALIBRATION_INTERCEPT = get_mua_regression_line()
 
@@ -22,23 +24,32 @@ CALIBRATION_SLOPE, CALIBRATION_INTERCEPT = 1484.95, 313.21
 
 COLOURS = [
     "#ccbb44ff",   # YELLOW
-    "#ee6677ff",  # RED
     "#4477aaff",  # BLUE
+    "#ee6677ff",  # RED
     "#228833ff",  # GREEN
 ]
+SCANS = [1, 15, 17, 21, 23, 3, 5, 7, 9]
 
 WAVELENGTHS = [700, 730, 750, 760, 770, 800, 820, 840, 850, 880]
 
-nrrd_seg, _ = nrrd.read(r"C:\final_data_simulation\mouse/Scan_1-labels.nrrd")
-# aorta == 6
-# spine == 5
-# kidney == 4
-# spleen == 3
-# body == 2
-instance_seg = np.squeeze(nrrd_seg).astype(float)
-segmentation = np.squeeze(nrrd_seg).astype(float)
-segmentation[segmentation <= 1] = -1
-segmentation[segmentation > 1] = 1
+instance_segmentations = []
+segmentations = []
+
+for scan in SCANS:
+    nrrd_seg, _ = nrrd.read(fr"{DATA_PATH}\mouse/Scan_{scan}-labels.nrrd")
+    # aorta == 6
+    # spine == 5
+    # kidney == 4
+    # spleen == 3
+    # body == 2
+    instance_segmentations.append(np.squeeze(nrrd_seg).astype(float))
+    _seg = np.squeeze(nrrd_seg).astype(float)
+    _seg[_seg <= 1] = -1
+    _seg[_seg > 1] = 1
+    segmentations.append(_seg)
+
+instance_segmentations = np.asarray(instance_segmentations)
+segmentations = np.asarray(segmentations)
 
 matplotlib.rc('xtick', labelsize=14)
 matplotlib.rc('ytick', labelsize=14)
@@ -53,13 +64,17 @@ SPACING = 0.10666666667
 path = f"{PATH_EXP}/fold_0/mouse_data.npz"
 estimated_data = np.load(path)
 signal = np.squeeze(estimated_data["gt_inputs"])
+print(np.shape(signal))
+signal = np.reshape(signal, (-1, len(WAVELENGTHS), 288, 288))
 est_mua_exp = np.squeeze(estimated_data["est_muas"])
+est_mua_exp = np.reshape(est_mua_exp, (-1, len(WAVELENGTHS), 288, 288))
+
 num = 1
 for fold_id in range(1, 5):
     path = f"{PATH_EXP}/fold_{str(fold_id)}/mouse_data.npz"
     if os.path.exists(path):
         estimated_data = np.load(path)
-        est_mua_exp += np.squeeze(estimated_data["est_muas"])
+        est_mua_exp += np.squeeze(estimated_data["est_muas"].reshape((-1, len(WAVELENGTHS), 288, 288)))
         num += 1
     else:
         print("WARN: Did not find mouse estimate for baseline_", fold_id)
@@ -69,22 +84,23 @@ est_mua_exp = est_mua_exp / num
 path = f"{PATH_SIM}/fold_0/mouse_data.npz"
 estimated_data = np.load(path)
 est_mua_sim = np.squeeze(estimated_data["est_muas"])
+est_mua_sim = np.reshape(est_mua_sim, (-1, len(WAVELENGTHS), 288, 288))
 num = 1
 for fold_id in range(1, 5):
     path = f"{PATH_SIM}/fold_{str(fold_id)}/mouse_data.npz"
     if os.path.exists(path):
         estimated_data = np.load(path)
-        est_mua_sim += np.squeeze(estimated_data["est_muas"])
+        est_mua_sim += np.squeeze(estimated_data["est_muas"].reshape((-1, len(WAVELENGTHS), 288, 288)))
         num += 1
     else:
         print("WARN: Did not find mouse estimate for baseline_", fold_id)
 est_mua_sim = est_mua_sim / num
 
-
+# Get the calibrated signal
 mua_signal = (np.abs(signal)) / CALIBRATION_SLOPE
 
 
-def define_axis(ax, image, cmap, title, point=None, colour=None, vmin=None, vmax=None, scalebar_color=None):
+def define_axis(ax, image, instance_seg, cmap, title, point=None, colour=None, vmin=None, vmax=None, scalebar_color=None):
     im = ax.imshow(image[0 + BORDER:288 - BORDER, 0 + BORDER:288 - BORDER], cmap=cmap, vmin=vmin, vmax=vmax)
     ax.axis("off")
     # ax.set_yticklabels([])
@@ -133,7 +149,7 @@ def add_lines(ax, sig, dl_mua, dl_phi, point, title=None, lim=None, legend=True)
     if legend:
         ax.legend()
 
-def create_histogram_plot(axis, image_1, image_2, image_3, text, _max=1, log=False):
+def create_histogram_plot(axis, image_1, image_2, image_3, segmentation, text, _max=1, log=False):
     image_1 = np.reshape(image_1[segmentation == 1], (-1, ))
     image_2 = np.reshape(image_2[segmentation == 1], (-1,))
     image_3 = np.reshape(image_3[segmentation == 1], (-1,))
@@ -169,11 +185,9 @@ def plot_mean_spectrum(axis, image_1, image_2, image_3):
 
 def calc_sO2(image):
     image_shape = np.shape(image)
-    tmp_image = np.zeros((1, image_shape[0], image_shape[1], image_shape[2], 1))
-    tmp_image[0, :, :, :, 0] = image
+    tmp_image = np.zeros((image_shape[0], image_shape[1], image_shape[2], image_shape[3], 1))
+    tmp_image[:, :, :, :, 0] = image
     wavelengths = np.array(WAVELENGTHS)
-    print(np.shape(tmp_image))
-    print(np.shape(wavelengths))
     r = Reconstruction(tmp_image, wavelengths,
                        field_of_view=(1, 1, 1))  # field of view is the width of the image along x, y, z
     r.attributes["RECONSTRUCTION_FIELD_OF_VIEW_X"] = 1
@@ -187,12 +201,13 @@ def calc_sO2(image):
     return np.squeeze(so2.values)
 
 
-signal_so2 = calc_sO2(mua_signal[:len(WAVELENGTHS), :, :])
-signal_so2[segmentation==-1] = None
-mua_so2 = calc_sO2(est_mua_exp[:len(WAVELENGTHS), :, :])
-mua_so2[segmentation==-1] = None
-sim_so2 = calc_sO2(est_mua_sim[:len(WAVELENGTHS), :, :])
-sim_so2[segmentation == -1] = None
+print(np.shape(mua_signal))
+signal_so2 = calc_sO2(mua_signal)
+signal_so2[segmentations == -1] = None
+mua_so2 = calc_sO2(est_mua_exp)
+mua_so2[segmentations == -1] = None
+sim_so2 = calc_sO2(est_mua_sim)
+sim_so2[segmentations == -1] = None
 
 
 f = plt.figure(figsize=(6, 14))
@@ -212,25 +227,25 @@ WL = 5
 BORDER = 40
 points = [287-2*BORDER-35, 0+35, 287-2*BORDER, 0]
 
-define_axis(a1, mua_signal[WL], "magma",
+define_axis(a1, mua_signal[SCAN_INDEX_TO_SHOW, WL], instance_segmentations[SCAN_INDEX_TO_SHOW], "magma",
             f"Cal. Signal [cm$^{{-1}}$]", points, COLOURS[0])
-define_axis(a2, est_mua_exp[WL], "viridis",
-            f"DL-Exp [cm$^{{-1}}$]", points, COLOURS[1],
+define_axis(a2, est_mua_sim[SCAN_INDEX_TO_SHOW, WL], instance_segmentations[SCAN_INDEX_TO_SHOW], "viridis",
+            f"DL-Sim [cm$^{{-1}}$]", points, COLOURS[1],
             vmin=0, vmax=None)
-define_axis(a3, est_mua_sim[WL], "viridis",
-            f"DL-Sim [cm$^{{-1}}$]", points, COLOURS[2],
+define_axis(a3, est_mua_exp[SCAN_INDEX_TO_SHOW, WL], instance_segmentations[SCAN_INDEX_TO_SHOW], "viridis",
+            f"DL-Exp [cm$^{{-1}}$]", points, COLOURS[2],
             vmin=0, vmax=None)
 # add_lines(a4, mua_signal[WL, 0+BORDER:288-BORDER, 0+BORDER:288-BORDER],
 #           est_mua[WL, 0+BORDER:288-BORDER, 0+BORDER:288-BORDER],
 #           fluence_mua[WL, 0+BORDER:288-BORDER, 0+BORDER:288-BORDER], points, "Line profiles [cm$^{{-1}}$]",
 #           lim=[-0.1, 0.75])
 
-define_axis(a5, signal_so2 * 100, "seismic",
+define_axis(a5, (signal_so2 * 100)[SCAN_INDEX_TO_SHOW], instance_segmentations[SCAN_INDEX_TO_SHOW], "seismic",
             f"Cal. Signal sO$_2$ [%]", points, COLOURS[0], vmin=0, vmax=100, scalebar_color="black")
-define_axis(a6, mua_so2 * 100, "seismic",
-            f"DL-Exp sO$_2$ [%]", points, COLOURS[1], vmin=0, vmax=100, scalebar_color="black")
-define_axis(a7, sim_so2 * 100, "seismic",
-            f"DL-Sim sO$_2$ [%]", points, COLOURS[2], vmin=0, vmax=100, scalebar_color="black")
+define_axis(a6, (sim_so2 * 100)[SCAN_INDEX_TO_SHOW], instance_segmentations[SCAN_INDEX_TO_SHOW], "seismic",
+            f"DL-Sim sO$_2$ [%]", points, COLOURS[1], vmin=0, vmax=100, scalebar_color="black")
+define_axis(a7, (mua_so2 * 100)[SCAN_INDEX_TO_SHOW], instance_segmentations[SCAN_INDEX_TO_SHOW], "seismic",
+            f"DL-Exp sO$_2$ [%]", points, COLOURS[2], vmin=0, vmax=100, scalebar_color="black")
 # add_lines(a8, signal_so2[0+BORDER:288-BORDER, 0+BORDER:288-BORDER],
 #           mua_so2[0+BORDER:288-BORDER, 0+BORDER:288-BORDER],
 #           phi_so2[0+BORDER:288-BORDER, 0+BORDER:288-BORDER], points, "Line profiles [%]",
@@ -241,14 +256,9 @@ define_axis(a7, sim_so2 * 100, "seismic",
 # Ratio between absorption coefficient in aorta and in spine
 # ###############################################################
 
-def plot_ratio_end_error(ax, a, b, xpos, colour):
-    mean_a = np.mean(a)
-    mean_b = np.mean(b)
-    std_a = np.std(a)
-    std_b = np.std(b)
-    error = mean_a/mean_b * np.sqrt((std_a/mean_a)**2 + (std_b/mean_b)**2)
-    ax.errorbar(xpos, mean_a/mean_b, yerr=error, c=colour, alpha=0.5)
-    ax.plot(xpos, mean_a/mean_b, "o", c=colour)
+def plot_ratio_end_error(ax, ratios, xpos, colour):
+    ax.errorbar(xpos, np.mean(ratios), yerr=np.std(ratios), c=colour, alpha=0.5)
+    ax.plot(xpos, np.mean(ratios), "o", c=colour)
 
 
 def barplot_annotate_brackets(ax, num1, num2, data, center, height, yerr=None, dh=.05, barh=.05,
@@ -303,10 +313,17 @@ def barplot_annotate_brackets(ax, num1, num2, data, center, height, yerr=None, d
 
     ax.text(*mid, text, **kwargs)
 
+quotient_signal = []
+quotient_exp = []
+quotient_sim = []
 
-quotient_signal = mua_signal[5][instance_seg==6] / mua_signal[5][instance_seg==5][0:107]
-quotient_exp = est_mua_exp[5][instance_seg==6] / est_mua_exp[5][instance_seg==5][0:107]
-quotient_sim = est_mua_sim[5][instance_seg==6] / est_mua_sim[5][instance_seg==5][0:107]
+for i in range(len(SCANS)):
+    quotient_signal.append(np.mean(mua_signal[i, 5][instance_segmentations[i] == 6]) /
+                           np.mean(mua_signal[i, 5][instance_segmentations[i] == 5]))
+    quotient_exp.append(np.mean(est_mua_exp[i, 5][instance_segmentations[i] == 6]) /
+                        np.mean(est_mua_exp[i, 5][instance_segmentations[i] == 5]))
+    quotient_sim.append(np.mean(est_mua_sim[i, 5][instance_segmentations[i] == 6]) /
+                        np.mean(est_mua_sim[i, 5][instance_segmentations[i] == 5]))
 
 sig_exp_res = mannwhitneyu(quotient_signal, quotient_exp)
 p_sig_exp = sig_exp_res.pvalue
@@ -315,72 +332,73 @@ p_sig_sim = sig_sim_res.pvalue
 
 print(p_sig_exp, p_sig_sim)
 
-plot_ratio_end_error(a9, mua_signal[5][instance_seg == 6], mua_signal[5][instance_seg == 5], 0, COLOURS[0])
-plot_ratio_end_error(a9, est_mua_exp[5][instance_seg == 6], est_mua_exp[5][instance_seg == 5], 1, COLOURS[1])
-plot_ratio_end_error(a9, est_mua_sim[5][instance_seg == 6], est_mua_sim[5][instance_seg == 5], 2, COLOURS[2])
-barplot_annotate_brackets(a9, 0, 1, p_sig_exp,
+plot_ratio_end_error(a9, quotient_signal, 0, COLOURS[0])
+plot_ratio_end_error(a9, quotient_sim, 1, COLOURS[1])
+plot_ratio_end_error(a9, quotient_exp, 2, COLOURS[2])
+barplot_annotate_brackets(a9, 0, 2, p_sig_exp,
                           [0, 1, 2],
-                          [np.max(quotient_signal), np.max(quotient_exp), np.max(quotient_sim)])
-barplot_annotate_brackets(a9, 0, 2, p_sig_sim,
+                          [np.max(quotient_signal), np.max(quotient_sim), np.max(quotient_exp)], dh=1.2)
+barplot_annotate_brackets(a9, 0, 1, p_sig_sim,
                           [0, 1, 2],
-                          [np.max(quotient_signal), np.max(quotient_exp), np.max(quotient_sim)], dh=1.2)
+                          [np.max(quotient_signal), np.max(quotient_sim), np.max(quotient_exp)], dh=-1.6)
 a9.set_xlim(-0.5, 2.5)
-a9.set_xticks([0, 1, 2], ["Cal.", "DL-Exp", "DL-Sim"])
+a9.set_xticks([0, 1, 2], ["Cal.", "DL-Sim", "DL-Exp"])
 a9.spines.right.set_visible(False)
 a9.spines.top.set_visible(False)
 a9.set_ylabel("Aorta/Spine $\mu_a$-ratio", fontweight="bold")
 
 # ###############################################################
-# Multiwavelength spectrum of aorta
-# ###############################################################
-
-# a10.plot(WAVELENGTHS, np.mean(mua_signal[:, instance_seg==6], axis=1), c=COLOURS[0])
-# a10.plot(WAVELENGTHS, np.mean(est_mua[:, instance_seg==6], axis=1), c=COLOURS[1])
-# a10.plot(WAVELENGTHS, np.mean(fluence_mua[:, instance_seg==6], axis=1), c=COLOURS[2])
-# a10.spines.right.set_visible(False)
-# a10.spines.top.set_visible(False)
-# a10.set_xlabel("Wavelength [nm]")
-# a10.set_ylabel("$\\mu_a$ [cm$^{-1}$]")
-
-# ###############################################################
 # Aorta oxygenation estimation
 # ###############################################################
-aorta_sO2 = [signal_so2[instance_seg==6] * 100, mua_so2[instance_seg==6] * 100, sim_so2[instance_seg == 6] * 100]
+aorta_sO2_sig = []
+aorta_sO2_sim = []
+aorta_sO2_exp = []
+for i in range(len(SCANS)):
+    aorta_sO2_sig.append(np.mean(signal_so2[i][instance_segmentations[i] == 6] * 100))
+    aorta_sO2_sim.append(np.mean(sim_so2[i][instance_segmentations[i] == 6] * 100))
+    aorta_sO2_exp.append(np.mean(mua_so2[i][instance_segmentations[i] == 6] * 100))
 
-sig_exp_so2 = mannwhitneyu(aorta_sO2[0], aorta_sO2[1])
+aorta_sO2_sig = np.asarray(aorta_sO2_sig)
+aorta_sO2_sim = np.asarray(aorta_sO2_sim)
+aorta_sO2_exp = np.asarray(aorta_sO2_exp)
+
+sig_exp_so2 = mannwhitneyu(aorta_sO2_sig, aorta_sO2_exp)
 p_sig_exp_so2 = sig_exp_so2.pvalue
-sig_sim_so2 = mannwhitneyu(aorta_sO2[0], aorta_sO2[2])
+sig_sim_so2 = mannwhitneyu(aorta_sO2_sig, aorta_sO2_sim)
 p_sig_sim_so2 = sig_sim_so2.pvalue
 
 print("exp")
-print(np.median(aorta_sO2[1]-aorta_sO2[0]), np.std(aorta_sO2[1]-aorta_sO2[0]))
+print(np.median(np.abs(aorta_sO2_exp-aorta_sO2_sig)), np.std(aorta_sO2_exp-aorta_sO2_sig))
 print(p_sig_exp_so2)
 
 print("sim")
-print(np.median(aorta_sO2[2]-aorta_sO2[0]), np.std(aorta_sO2[2]-aorta_sO2[0]))
+print(np.median(np.abs(aorta_sO2_sim-aorta_sO2_sig)), np.std(aorta_sO2_sim-aorta_sO2_sig))
 print(p_sig_sim_so2)
 
-bp2 = a11.boxplot(aorta_sO2,
-                 showfliers=False, widths=0.8)
+bp2 = a11.boxplot([aorta_sO2_sig, aorta_sO2_sim, aorta_sO2_exp],
+                  showfliers=False, widths=0.8)
 
-barplot_annotate_brackets(a11, 0, 1, p_sig_exp_so2,
+barplot_annotate_brackets(a11, 0, 1, p_sig_sim_so2,
                           [1, 2, 3],
-                          [np.max(aorta_sO2[0]), np.max(aorta_sO2[1]), np.max(aorta_sO2[2])], dh=10)
-barplot_annotate_brackets(a11, 0, 2, p_sig_sim_so2,
+                          [np.max(aorta_sO2_sig), np.max(aorta_sO2_sim), np.max(aorta_sO2_exp)], dh=2)
+barplot_annotate_brackets(a11, 0, 2, p_sig_exp_so2,
                           [1, 2, 3],
-                          [np.max(aorta_sO2[0]), np.max(aorta_sO2[1]), np.max(aorta_sO2[2])], dh=-5)
+                          [np.max(aorta_sO2_sig), np.max(aorta_sO2_sim), np.max(aorta_sO2_exp)], dh=2)
 
 for idx, median in enumerate(bp2['medians']):
     median.set_color(COLOURS[idx])
-parts = a11.violinplot(aorta_sO2, widths=0.8, showextrema=False)
+parts = a11.violinplot([aorta_sO2_sig, aorta_sO2_sim, aorta_sO2_exp], widths=0.8, showextrema=False)
 for idx, pc in enumerate(parts['bodies']):
     pc.set_facecolor(COLOURS[idx])
     pc.set_edgecolor(COLOURS[idx])
     pc.set_alpha(0.4)
-a11.set_xticks([1, 2, 3], ["Cal.", "DL-Exp", "DL-Sim"])
+a11.set_xticks([1, 2, 3], ["Cal.", "DL-Sim", "DL-Exp"])
 a11.spines.right.set_visible(False)
 a11.spines.top.set_visible(False)
 a11.set_ylabel("Aorta sO$_2$ [%]", fontweight="bold")
+a11.fill_between([0.5, 3.5], 94, 98, color="green", alpha=0.25)
+a11.set_ylim(None, 104)
+a11.hlines(96, xmin=0.5, xmax=3.5, color="green")
 
 # create_histogram_plot(a9, mua_signal[0, :, :], est_mua[0, :, :], fluence_mua[0, :, :],
 #                       f"log($\\hat{{\\mu_a}} + 1$) at {WAVELENGTHS[0]}nm [a.u.]", log=True, _max=2)
@@ -424,6 +442,9 @@ a1.text(0.45, 0.44, "AORTA", transform=a1.transAxes,
         size=10, weight='bold', color="white")
 a1.text(0.6, 0.14, "SPINE", transform=a1.transAxes,
         size=10, weight='bold', color="white")
+
+if not os.path.exists("../figures/res_images/"):
+    os.makedirs("../figures/res_images/")
 
 plt.savefig(f"../figures/figure6.png", bbox_inches='tight', dpi=300)
 plt.savefig(f"../figures/figure6.svg", bbox_inches='tight')

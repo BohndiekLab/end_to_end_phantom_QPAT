@@ -1,3 +1,7 @@
 torch==2.0.0
 numpy==1.24.3
-scipy==1.10.1
+scipy==1.9.1
+patato==0.2.4
+simpa==0.8.11
+matplotlib==3.5.0
+matplotlib-scalebar==0.7.2

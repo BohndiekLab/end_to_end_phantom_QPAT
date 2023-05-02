@@ -32,7 +32,9 @@ a detailed README file is added to it that will detail the data and outline how 
 3. Setup a new clean Python virtual environment
    - `python -m venv venv`
    - activate the virtual environment and work in it for all following steps.
-4. Install the requirements.txt file into your requirements
+4. Install jax and jaxlib
+   - `pip install "jax[cpu]===0.3.14" -f https://whls.blob.core.windows.net/unstable/index.html --use-deprecated legacy-resolver`
+5. Install the requirements.txt file into your requirements
    - `pip install -r requirements.txt`
 
 The version numbers of the requirements are all fixed to increase the likelihood that the code
@@ -61,3 +63,11 @@ step that has to be altered.
 
 Run `evaluate_test_data.py`. This will compute all results for both U-Nets (trained on experimental
 and simulated data)
+
+## Step 6: Compile the desired figures
+
+By executing any Python file in the `figures_main_paper` or the `figures_supplements` folders, you can now
+reproduce all figures from the published paper.
+
+If you find drastically different results or cannot reproduce the findings please contact the authors of the
+manuscript.

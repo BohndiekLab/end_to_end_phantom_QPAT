@@ -7,13 +7,13 @@ import string
 import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.ndimage import distance_transform_edt
+from data_path import DATA_PATH
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from utils.regression import get_mua_regression_line, get_fluence_corrected_regression_line
 
-PATH_EXP = r"..\experimental/"
-PATH_SIM = r"..\simulation/"
+PATH_EXP = rf"{DATA_PATH}/model_weights_experiment/"
+PATH_SIM = rf"{DATA_PATH}/model_weights_simulation/"
 
 COLOURS = [
     "#228833ff",  # GREEN
@@ -25,12 +25,12 @@ COLOURS = [
 # This is a training set-optimised property to discard pixels too deep inside the structures
 DISTANCE_THRESHOLD = 12
 
-# CALIBRATION_SLOPE, CALIBRATION_INTERCEPT = get_mua_regression_line()
-# FLUENCE_CALIBRATION_SLOPE_BG, FLUENCE_CALIBRATION_INTERCEPT_BG = get_fluence_corrected_regression_line(DISTANCE_THRESHOLD)
-
 # using the numbers directly for computational speed...
 CALIBRATION_SLOPE, CALIBRATION_INTERCEPT = 1484.95, 313.21
 FLUENCE_CALIBRATION_SLOPE_BG, FLUENCE_CALIBRATION_INTERCEPT_BG = 8801.3456983042, 832.4797676291034
+# TODO if your results seem a bit off, it might be worth re-computing the regression lines.
+# CALIBRATION_SLOPE, CALIBRATION_INTERCEPT = get_mua_regression_line()
+# FLUENCE_CALIBRATION_SLOPE_BG, FLUENCE_CALIBRATION_INTERCEPT_BG = get_fluence_corrected_regression_line(DISTANCE_THRESHOLD)
 
 SPACING = 0.10666666667
 points = [

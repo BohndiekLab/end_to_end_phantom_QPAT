@@ -3,6 +3,7 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from patato.core.image_structures.reconstruction_image import Reconstruction
 from patato.unmixing.unmixer import SpectralUnmixer, SO2Calculator
 import matplotlib.pyplot as plt
+from data_path import DATA_PATH
 import numpy as np
 import simpa as sp
 import matplotlib
@@ -21,8 +22,11 @@ for i in wavelength_range:
 hb_spectrum = np.asarray(hb_spectrum)
 hbo2_spectrum = np.asarray(hbo2_spectrum)
 
-PATH_EXP = r"..\experimental/"
-PATH_SIM = r"..\simulation/"
+PATH_EXP = rf"{DATA_PATH}/model_weights_experiment/"
+PATH_SIM = rf"{DATA_PATH}/model_weights_simulation/"
+
+if not os.path.exists("../figures/res_images/"):
+    os.makedirs("../figures/res_images/")
 
 COLOURS = [
     "#ccbb44ff",   # YELLOW
@@ -62,7 +66,7 @@ estimated_data = np.load(path)
 signal = np.squeeze(estimated_data["gt_inputs"])
 est_mua_exp = np.squeeze(estimated_data["est_muas"])
 
-segmentation, _ = nrrd.read(r"C:\final_data_simulation\flow/Scan13_0-labels.nrrd")
+segmentation, _ = nrrd.read(rf"{DATA_PATH}\flow/Scan13_0-labels.nrrd")
 segmentation = np.squeeze(segmentation).astype(float)
 seg_background = np.zeros_like(segmentation)
 seg_melanin = np.zeros_like(segmentation)

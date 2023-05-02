@@ -3,8 +3,8 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-files = glob.glob("sims/*_low.npz")
-with open("data/thickness.json", "r+") as json_file:
+files = glob.glob("error_propagation/sims/*_low.npz")
+with open("error_propagation/data/thickness.json", "r+") as json_file:
     thicknesses = json.load(json_file)
 
 def calc_thickness_std_percent(name):
@@ -46,9 +46,9 @@ for sim_result in files:
                 data["p0"],
                 data["recon"])
 
-    mua_low, mus_low, p0_low, recon_low = load(np.load(f"sims/{name}_low.npz"))
-    mua_mean, mus_mean, p0_mean, recon_mean = load(np.load(f"sims/{name}_mean.npz"))
-    mua_high, mus_high, p0_high, recon_high = load(np.load(f"sims/{name}_high.npz"))
+    mua_low, mus_low, p0_low, recon_low = load(np.load(f"error_propagation/sims/{name}_low.npz"))
+    mua_mean, mus_mean, p0_mean, recon_mean = load(np.load(f"error_propagation/sims/{name}_mean.npz"))
+    mua_high, mus_high, p0_high, recon_high = load(np.load(f"error_propagation/sims/{name}_high.npz"))
 
     actual_p0 = ((np.abs(p0_high - p0_low) / 2) / p0_mean) * 100
     actual_recon = ((np.abs(recon_high - recon_low) / 2) / recon_mean) * 100
@@ -76,4 +76,4 @@ plt.gca().spines.right.set_visible(False)
 plt.gca().spines.top.set_visible(False)
 plt.ylabel("Standard Error [%]")
 plt.tight_layout()
-plt.savefig("../suppl_figure8.png", dpi=300)
+plt.savefig("suppl_figure8.png", dpi=300)

@@ -2,14 +2,15 @@ import os
 import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
+from data_path import DATA_PATH
 from scipy.stats import mannwhitneyu
 from scipy.ndimage import distance_transform_edt
 from utils.visualise import subfig_regression_line
 
 EXPERIMENTAL = False
 
-EXP_PATH = r"..\experimental/"
-SIM_PATH = r"..\simulation/"
+PATH_EXP = rf"{DATA_PATH}/model_weights_experiment/"
+PATH_SIM = rf"{DATA_PATH}/model_weights_simulation/"
 
 COLOURS = [
     "#228833ff",  # GREEN
@@ -35,7 +36,7 @@ FLUENCE_CALIBRATION_SLOPE_BG, FLUENCE_CALIBRATION_INTERCEPT_BG = 8801.3456983042
 # bg_intercept = 832.4797676291034
 
 
-path = f"{EXP_PATH}/fold_0/data.npz"
+path = f"{PATH_EXP}/fold_0/data.npz"
 estimated_data = np.load(path)
 signal = np.squeeze(estimated_data["gt_inputs"])
 gt_mua = np.squeeze(estimated_data["gt_muas"])
@@ -44,7 +45,7 @@ fluences = np.squeeze(estimated_data["gt_fluences"])
 est_mua_exp = np.squeeze(estimated_data["est_muas"])
 num=1
 for i in range(1, 5):
-    path = fr"{EXP_PATH}\fold_{str(i)}\data.npz"
+    path = fr"{PATH_SIM}\fold_{str(i)}\data.npz"
     if os.path.exists(path):
         estimated_data = np.load(path)
         est_mua_exp += np.squeeze(estimated_data["est_muas"])
@@ -52,12 +53,12 @@ for i in range(1, 5):
 
 est_mua_exp = est_mua_exp / num
 
-path = f"{SIM_PATH}/fold_0/data.npz"
+path = f"{PATH_SIM}/fold_0/data.npz"
 estimated_data = np.load(path)
 est_mua_sim = np.squeeze(estimated_data["est_muas"])
 num=1
 for i in range(1, 5):
-    path = fr"{SIM_PATH}\fold_{str(i)}\data.npz"
+    path = fr"{PATH_SIM}\fold_{str(i)}\data.npz"
     if os.path.exists(path):
         estimated_data = np.load(path)
         est_mua_sim += np.squeeze(estimated_data["est_muas"])

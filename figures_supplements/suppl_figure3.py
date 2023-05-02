@@ -1,13 +1,14 @@
-from scipy.stats import linregress
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+from data_path import DATA_PATH
+from scipy.stats import linregress
 from utils.data_loading import PalpaitineDataset
-from scipy.ndimage.morphology import distance_transform_edt
+from scipy.ndimage import distance_transform_edt
 
-TRAINING_PATH = r"C:\final_data_simulation\training/"
-train_data_exp = PalpaitineDataset(data_path=f"C:/final_data_simulation/training",
+TRAINING_PATH = fr"{DATA_PATH}\training/"
+train_data_exp = PalpaitineDataset(data_path=f"{DATA_PATH}/training",
                                    augment=False, use_all_data=True, experimental_data=True)
-train_data_sim = PalpaitineDataset(data_path=f"C:/final_data_simulation/training",
+train_data_sim = PalpaitineDataset(data_path=f"{DATA_PATH}/training",
                                    augment=False, use_all_data=True, experimental_data=False)
 
 exp_signals = []
@@ -42,5 +43,5 @@ plt.xlabel("MSOT signal [a.u.]")
 plt.ylabel("Simulated signal [a.u.]")
 plt.legend()
 plt.tight_layout()
-plt.savefig("../figures/supplement_sim_exp_correlation.png", dpi=300)
+plt.savefig("suppl_figure3.png", dpi=300)
 plt.close()
