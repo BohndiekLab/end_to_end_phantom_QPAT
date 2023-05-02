@@ -1,20 +1,20 @@
 import os
 import torch
 import numpy as np
+from data_path import DATA_PATH
 from torch.utils.data import DataLoader
 from utils.networks import RegressionUNet
 from utils.data_loading import PalpaitineDataset
-from utils.visualise import visualise_mua_fluence_estimation
 
 NUM_EPOCHS = 200
-BASE_PATH = r"simulation\fold_"
+BASE_PATH = rf"{DATA_PATH}/model_weights_simulation\fold_"
 
 for fold in [0, 1, 2, 3, 4]:
 
     if not os.path.exists(f"{BASE_PATH}{fold}"):
         os.makedirs(f"{BASE_PATH}{fold}")
 
-    train_data = PalpaitineDataset(data_path=f"C:/final_data_simulation/training",
+    train_data = PalpaitineDataset(data_path=f"{DATA_PATH}/training",
                                    augment=False, use_all_data=True, experimental_data=False)
 
     mean_musp = (np.mean(train_data.scatterings.detach().cpu().numpy()))
@@ -27,7 +27,7 @@ for fold in [0, 1, 2, 3, 4]:
     std_fluence = (np.std(train_data.fluences.detach().cpu().numpy()))
 
     device = torch.device("cuda:0")
-    train_data = PalpaitineDataset(data_path=f"C:/final_data_simulation/training", train=True, device=device, fold=fold,
+    train_data = PalpaitineDataset(data_path=f"{DATA_PATH}/training", train=True, device=device, fold=fold,
                                    augment=True,
                                    mean_signal=mean_signal,
                                    std_signal=std_signal,
@@ -38,7 +38,7 @@ for fold in [0, 1, 2, 3, 4]:
                                    mean_fluence=mean_fluence,
                                    std_fluence=std_fluence,
                                    experimental_data=False)
-    val_data = PalpaitineDataset(data_path=f"C:/final_data_simulation/training", train=False, device=device, fold=fold,
+    val_data = PalpaitineDataset(data_path=f"{DATA_PATH}/training", train=False, device=device, fold=fold,
                                  mean_signal=mean_signal,
                                  std_signal=std_signal,
                                  mean_mua=mean_mua,
@@ -101,10 +101,6 @@ for fold in [0, 1, 2, 3, 4]:
         scheduler.step(running_val_loss/len(valloader))
         if not os.path.exists(f"{BASE_PATH}{fold}/progress/"):
             os.makedirs(f"{BASE_PATH}{fold}/progress/")
-        visualise_mua_fluence_estimation(inputs, instance_seg,
-                                         mua, est_mua[:, 0:1, :, :],
-                                         fluence, est_mua[:, 1:2, :, :],
-                                         save_path=f"{BASE_PATH}{fold}/progress/training_progress_{epoch + 1}.png")
 
         np.savez(f"{BASE_PATH}{fold}/losses.npz",
                  training_losses=training_losses,

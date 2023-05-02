@@ -1,5 +1,7 @@
+.idea/*
 *losses.npz
 *data.npz
 *.pdf
 *.png
 *.svg
+*.pyc
