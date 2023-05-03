@@ -209,7 +209,5 @@ a4.text(-0.1, 1.01, "C", transform=a4.transAxes, size=30, weight='bold')
 
 
 #plt.subplots_adjust(wspace=0, hspace=0)
-plt.savefig(r"..\figures\figure4.png", bbox_inches='tight')
-plt.savefig(r"..\figures\figure4.svg", bbox_inches='tight')
-plt.savefig(r"..\figures\figure4.pdf", bbox_inches='tight')
+plt.savefig(r"..\figures\figure4.png", bbox_inches='tight', dpi=600)
 plt.close()

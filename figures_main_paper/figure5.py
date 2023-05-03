@@ -267,7 +267,5 @@ a6.text(0.4, 0.75, "lit. ref. / 3", transform=a6.transAxes, size=10, weight='bol
 
 
 plt.tight_layout()
-plt.savefig(f"../figures/figure5.png", bbox_inches='tight', dpi=300)
-plt.savefig(f"../figures/figure5.svg", bbox_inches='tight')
-plt.savefig(f"../figures/figure5.pdf", bbox_inches='tight')
+plt.savefig(f"../figures/figure5.png", bbox_inches='tight', dpi=600)
 plt.close()

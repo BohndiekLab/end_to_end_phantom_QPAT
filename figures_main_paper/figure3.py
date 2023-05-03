@@ -155,7 +155,7 @@ def plot_result_image(dl_exp_estimate,
     a0.add_artist(ScaleBar(SPACING, "mm", length_fraction=0.25, location="lower left", color="white", box_alpha=0))
     divider = make_axes_locatable(a0)
     cax = divider.append_axes('bottom', size='5%', pad=0.05)
-    f.colorbar(im0, cax=cax, orientation='horizontal', label="Cal. Signal [cm$^{-1}$]")
+    f.colorbar(im0, cax=cax, orientation='horizontal', label="Cal. Signal $\\mu_a$ [cm$^{-1}$]")
 
     im2 = a1.imshow(phi_estimate, vmin=0, vmax=ylim_max)
     a1.plot([y0, y1], [x0, x1], color=COLOURS[0], linewidth=3, linestyle="dashed")
@@ -163,7 +163,7 @@ def plot_result_image(dl_exp_estimate,
     a1.add_artist(ScaleBar(SPACING, "mm", length_fraction=0.25, location="lower left", color="white", box_alpha=0))
     divider = make_axes_locatable(a1)
     cax = divider.append_axes('bottom', size='5%', pad=0.05)
-    f.colorbar(im2, cax=cax, orientation='horizontal', label="GT-$\\phi$ [cm$^{-1}$]")
+    f.colorbar(im2, cax=cax, orientation='horizontal', label="GT-$\\phi$ $\\mu_a$ [cm$^{-1}$]")
 
     im1 = a3.imshow(dl_exp_estimate, vmin=0, vmax=ylim_max)
     a3.plot([y0, y1], [x0, x1], color=COLOURS[1], linewidth=3, linestyle="dashed")
@@ -171,7 +171,7 @@ def plot_result_image(dl_exp_estimate,
     a3.add_artist(ScaleBar(SPACING, "mm", length_fraction=0.25, location="lower left", color="white", box_alpha=0))
     divider = make_axes_locatable(a3)
     cax = divider.append_axes('bottom', size='5%', pad=0.05)
-    f.colorbar(im1, cax=cax, orientation='horizontal', label="DL-Exp [cm$^{-1}$]")
+    f.colorbar(im1, cax=cax, orientation='horizontal', label="DL-Exp $\\mu_a$ [cm$^{-1}$]")
 
     im3 = a2.imshow(dl_sim_estimate, vmin=0, vmax=ylim_max)
     a2.plot([y0, y1], [x0, x1], color=COLOURS[2], linewidth=3, linestyle="dashed")
@@ -179,7 +179,7 @@ def plot_result_image(dl_exp_estimate,
     a2.add_artist(ScaleBar(SPACING, "mm", length_fraction=0.25, location="lower left", color="white", box_alpha=0))
     divider = make_axes_locatable(a2)
     cax = divider.append_axes('bottom', size='5%', pad=0.05)
-    f.colorbar(im3, cax=cax, orientation='horizontal', label="DL-Sim [cm$^{-1}$]")
+    f.colorbar(im3, cax=cax, orientation='horizontal', label="DL-Sim $\\mu_a$ [cm$^{-1}$]")
 
     x_axis = np.linspace(0, length, length) * SPACING
     a4.set_title("$\\mu_a$ estimation profiles [cm$^{-1}$]")
@@ -203,21 +203,29 @@ def plot_result_image(dl_exp_estimate,
             size=24, weight='bold')
 
     plt.tight_layout()
-    plt.savefig(f"../figures/res_images/{phantom_slice_id}.png", bbox_inches='tight', dpi=300)
-    plt.savefig(f"../figures/res_images/{phantom_slice_id}.svg", bbox_inches='tight')
-    plt.savefig(f"../figures/res_images/{phantom_slice_id}.pdf", bbox_inches='tight')
+    plt.savefig(f"../figures/res_images/{phantom_slice_id}.png", bbox_inches='tight', dpi=600)
     plt.close()
 
 
 print("Plotting results...")
 legend = True
 for l_idx, (phantom_slice_id, idx) in enumerate(zip(10 + np.asarray(IDXS)*21, IDXS)):
-    print(idx, phantom_slice_id)
     for seg_class in np.unique(gt_segmentation[phantom_slice_id]):
         mua_exp = est_mua_exp[phantom_slice_id][gt_segmentation[phantom_slice_id] == seg_class]
         mua_gt = gt_mua[phantom_slice_id][gt_segmentation[phantom_slice_id] == seg_class]
-        print("\t", np.mean(mua_exp), np.std(mua_exp))
-        print("\t", np.mean(mua_gt), np.std(mua_gt))
+
+    phantom_name = phantom_slice_id
+    if phantom_slice_id == 115:
+        phantom_name = "figure3"
+    if phantom_slice_id == 73:
+        phantom_name = "suppl_figure4a"
+    if phantom_slice_id == 157:
+        phantom_name = "suppl_figure4b"
+    if phantom_slice_id == 178:
+        phantom_name = "suppl_figure5a"
+    if phantom_slice_id == 262:
+        phantom_name = "suppl_figure5b"
+    print("PHANTOM NAME:", phantom_name)
 
     plot_result_image(est_mua_exp[phantom_slice_id],
                       est_mua_sim[phantom_slice_id],
@@ -225,6 +233,6 @@ for l_idx, (phantom_slice_id, idx) in enumerate(zip(10 + np.asarray(IDXS)*21, ID
                       gt_mua[phantom_slice_id],
                       calibrated_signal[phantom_slice_id],
                       calibrated_signal_mean[phantom_slice_id],
-                      phantom_slice_id, idx, l_idx,
+                      phantom_name, idx, l_idx,
                       legend=legend)
     legend=True

@@ -228,12 +228,12 @@ BORDER = 40
 points = [287-2*BORDER-35, 0+35, 287-2*BORDER, 0]
 
 define_axis(a1, mua_signal[SCAN_INDEX_TO_SHOW, WL], instance_segmentations[SCAN_INDEX_TO_SHOW], "magma",
-            f"Cal. Signal [cm$^{{-1}}$]", points, COLOURS[0])
+            f"Cal. Signal $\\mu_a$ [cm$^{{-1}}$]", points, COLOURS[0])
 define_axis(a2, est_mua_sim[SCAN_INDEX_TO_SHOW, WL], instance_segmentations[SCAN_INDEX_TO_SHOW], "viridis",
-            f"DL-Sim [cm$^{{-1}}$]", points, COLOURS[1],
+            f"DL-Sim $\\mu_a$ [cm$^{{-1}}$]", points, COLOURS[1],
             vmin=0, vmax=None)
 define_axis(a3, est_mua_exp[SCAN_INDEX_TO_SHOW, WL], instance_segmentations[SCAN_INDEX_TO_SHOW], "viridis",
-            f"DL-Exp [cm$^{{-1}}$]", points, COLOURS[2],
+            f"DL-Exp $\\mu_a$ [cm$^{{-1}}$]", points, COLOURS[2],
             vmin=0, vmax=None)
 # add_lines(a4, mua_signal[WL, 0+BORDER:288-BORDER, 0+BORDER:288-BORDER],
 #           est_mua[WL, 0+BORDER:288-BORDER, 0+BORDER:288-BORDER],
@@ -446,7 +446,5 @@ a1.text(0.6, 0.14, "SPINE", transform=a1.transAxes,
 if not os.path.exists("../figures/res_images/"):
     os.makedirs("../figures/res_images/")
 
-plt.savefig(f"../figures/figure6.png", bbox_inches='tight', dpi=300)
-plt.savefig(f"../figures/figure6.svg", bbox_inches='tight')
-plt.savefig(f"../figures/figure6.pdf", bbox_inches='tight')
+plt.savefig(f"../figures/figure6.png", bbox_inches='tight', dpi=600)
 plt.close()
