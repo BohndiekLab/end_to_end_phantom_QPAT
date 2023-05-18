@@ -1,15 +1,14 @@
-# Code to reproduce the paper _Moving beyond simulation: supervised deep learning for quantitative photoacoustic imaging using tissue-mimicking phantoms_
+# Code to reproduce the paper _Moving beyond simulation: data-driven quantitative photoacoustic imaging using tissue-mimicking phantoms_
 
 #### Janek Grohl, Thomas R. Else, Lina Hacker, Ellie Bunce, Paul W. Sweeney, and Sarah E. Bohndiek
 
 This document will be a step-by-step guide to reproduce the figures
-presented in the paper **Moving beyond simulation: supervised deep learning for quantitative photoacoustic
-imaging using tissue-mimicking phantoms**.
+presented in the paper **Moving beyond simulation: data-driven quantitative photoacoustic imaging using tissue-mimicking phantoms**.
 
 ## Step 1: Download code and data
 
 Download this code from GitHub (https://www.todo.com/) and download the data from the 
-University of Cambridge data repository (https://www.todo.com/).
+University of Cambridge data repository (https://doi.org/10.17863/CAM.96644).
 
 Unzip all data zip files into a target directory. Note down the path to the directory. The file structure
 inside the folder should be the following:
