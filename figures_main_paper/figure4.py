@@ -108,15 +108,15 @@ depth_signals = (depth_signals - np.min(depth_signals)) / (
 depth_sim = (depth_sim - np.min(depth_sim)) / (
             np.max(depth_sim) - np.min(depth_sim))
 
-depth_signals_mean = np.mean(depth_signals, axis=1)
-depth_signals_std = np.std(depth_signals, axis=1)
-depth_sim_mean = np.mean(depth_sim, axis=1)
-depth_sim_std = np.std(depth_sim, axis=1)
+aggregate_signals = depth_signals.copy() / np.max(depth_signals, axis=0)[np.newaxis, :]
+aggregate_sims = depth_sim.copy() / np.max(depth_sim, axis=0)[np.newaxis, :]
+depth_signals_mean = np.mean(aggregate_signals, axis=1)
+depth_signals_std = np.std(aggregate_signals, axis=1)
+depth_sim_mean = np.mean(aggregate_sims, axis=1)
+depth_sim_std = np.std(aggregate_sims, axis=1)
 
-depth_signals_mean = (depth_signals_mean - min(depth_signals_mean)) / (max(depth_signals_mean) - min(depth_signals_mean))
-depth_signals_std = (depth_signals_std - min(depth_signals_mean)) / (max(depth_signals_mean) - min(depth_signals_mean))
-depth_sim_mean = (depth_sim_mean - min(depth_sim_mean)) / (max(depth_sim_mean) - min(depth_sim_mean))
-depth_sim_std = (depth_sim_std - min(depth_sim_mean)) / (max(depth_sim_mean) - min(depth_sim_mean))
+# depth_signals_mean = (depth_signals_mean) / (np.max(depth_signals_mean, axis=0)[np.newaxis, :])
+# depth_sim_mean = (depth_sim_mean) / (np.max(depth_sim_mean, axis=0)[np.newaxis, :])
 
 
 def plot_scatter(ax, index, yaxis=False):
@@ -184,13 +184,13 @@ f1 = fig.add_subfigure(ggs[1, 0:4])
 gs = f1.add_gridspec(1, 1)
 gs.update(top=0.9, bottom=0.1, left=0.0, right=0.9)
 a4 = f1.add_subplot(gs[0, 0])
-a4.plot(depth_levels * SPACING, depth_signals_mean, label="Experiments")
+a4.plot(depth_levels * SPACING, depth_signals_mean, linewidth=3, label="Experiments")
 a4.fill_between(depth_levels * SPACING, depth_signals_mean-depth_signals_std, depth_signals_mean+depth_signals_std,
-                facecolor='blue', alpha=0.4)
+                facecolor='blue', alpha=0.2)
 
-a4.plot(depth_levels * SPACING, depth_sim_mean, "--", color=COLOURS[0], label="Simulation")
+a4.plot(depth_levels * SPACING, depth_sim_mean, "--", linewidth=3, color=COLOURS[0], label="Simulation")
 a4.fill_between(depth_levels * SPACING, depth_sim_mean-depth_sim_std, depth_sim_mean+depth_sim_std,
-                facecolor=COLOURS[0], alpha=0.4)
+                facecolor=COLOURS[0], alpha=0.2)
 
 a4.vlines([depth_levels[idx] * SPACING for idx in [1, -2]], 0, 1.2, "black", linestyles="--")
 a4.text(depth_levels[1] * SPACING + 0.1, 0.4, "D")
