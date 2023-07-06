@@ -7,7 +7,7 @@ presented in the paper **Moving beyond simulation: data-driven quantitative phot
 
 ## Step 1: Download code and data
 
-Download this code from GitHub (https://www.todo.com/) and download the data from the 
+Download this code from GitHub (https://github.com/BohndiekLab/end_to_end_phantom_QPAT) and download the data from the 
 University of Cambridge data repository (https://doi.org/10.17863/CAM.96644).
 
 Unzip all data zip files into a target directory. Note down the path to the directory. The file structure
